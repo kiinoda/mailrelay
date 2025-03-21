@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/mail"
 	"net/smtp"
+	"regexp"
+	"strings"
 
 	"github.com/kiinoda/mailrelay/internal/config"
 )
@@ -38,8 +40,31 @@ func (e *Email) parseRecipients() error {
 		return err
 	}
 
-	// Extract recipients from message
-	e.Config.Recipients = []string{msg.Header.Get("To")}
+	// Assume we get some To, Cc and Bcc headers like these below.
+	//
+	// To: Foo<foo@domain.tld>, Bar <bar@domain.tld>
+	// Cc: Baz<baz@domain.tld>
+	// Bcc: Waldo <waldo@domain.tld>, xyzzy@domain.tld
+	//
+	// Our goal is to extract the values and set the array of recipients
+	// to the one below.
+	//
+	// []string{"foo@domain.tld", "bar@domain.tld", "baz@domain.tld", "waldo@domain.tld", "xyzzy@domain.tld"}
+
+	for _, h := range []string{"to", "cc", "bcc"} {
+		for _, part := range strings.Split(msg.Header.Get(h), ",") {
+			trimmed := strings.Trim(part, " ")
+			regex := regexp.MustCompile(`.*<(.*)>`)
+			matches := regex.FindStringSubmatch(trimmed)
+			recipient := ""
+			if len(matches) > 1 {
+				recipient = matches[1]
+			} else {
+				recipient = trimmed
+			}
+			e.Config.Recipients = append(e.Config.Recipients, recipient)
+		}
+	}
 	return nil
 }
 

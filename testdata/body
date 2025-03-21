@@ -1,0 +1,35 @@
+From: thud@domain.tld
+To: Foo<foo@domain.tld>, Bar <bar@domain.tld>
+Cc: Baz<baz@domain.tld>
+Bcc: Waldo <waldo@domain.tld>, xyzzy@domain.tld
+Subject: TEST EMAIL
+Reply-To: info@breezepos.net
+Return-Path: plugh@domain.tld
+MIME-Version: 1.0
+Content-Type: multipart/related;type="multipart/alternative";boundary="xxxxx"
+
+--xxxxx
+Content-Type: multipart/alternative;boundary="yyyyy"
+
+--yyyyy
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+TEST
+
+-
+
+--yyyyy
+Content-Type: text/html;charset="UTF-8"
+Content-Transfer-Encoding: base64
+
+PGh0bWw+CgkJCQk8aGVhZD4KCQkJCTxtZXRhIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIgY29u
+dGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0Zi04IiAvPgoJCQkJPC9oZWFkPgoJCQkJPGJvZHk+
+VEVTVAoJCQkJPGJyPgoJCQkJPHAgc3R5bGU9Im1hcmdpbjogMHB4OyBwYWRkaW5nOiAwcHg7IGZv
+bnQtc2l6ZTogMHB4OyBtc28tbGluZS1oZWlnaHQtcnVsZTpleGFjdGx5OyBsaW5lLWhlaWdodDog
+MXB4OyBmb250LWZhbWlseTogQXJpYWw7IGNvbG9yOiAjZmZmZmZmOyI+LTwvcD4KCQkJCTwvYm9k
+eT4KCQkJCTwvaHRtbD4=
+
+
+--yyyyy--
+
+--xxxxx--
