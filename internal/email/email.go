@@ -70,9 +70,10 @@ func (e *Email) parseRecipients() error {
 
 // Send attempts to send the email through one of the configured SMTP servers
 func (e *Email) Send() error {
+	var err error
 	// Try each SMTP server until one succeeds
 	for _, server := range e.Config.SmtpAddrs {
-		if err := e.attemptRelay(server); err == nil {
+		if err = e.attemptRelay(server); err == nil {
 			// Email sent successfully
 			if e.Config.BeVerbose {
 				fmt.Println("successfully sent mail from", e.Config.FromAddr, "to", e.Config.Recipients, "via", server)
@@ -81,7 +82,7 @@ func (e *Email) Send() error {
 		}
 	}
 
-	return fmt.Errorf("failed to send email to any SMTP server")
+	return fmt.Errorf("failed to send email to any SMTP server: %w", err)
 }
 
 // attemptRelay attempts to send the email through a specific SMTP server
