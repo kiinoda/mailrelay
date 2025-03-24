@@ -17,6 +17,11 @@ const (
 	VerboseEnvVar   = "MAILRELAY_VERBOSE"
 )
 
+// Package variables
+var (
+	osExit = os.Exit
+)
+
 // Config holds all the program configuration
 type Config struct {
 	BeVerbose  bool
@@ -93,7 +98,7 @@ func (cfg *Config) parseArguments() {
 	// Handle help flag
 	if cfg.ShowHelp {
 		flag.CommandLine.Usage()
-		os.Exit(0)
+		osExit(0)
 	}
 }
 
