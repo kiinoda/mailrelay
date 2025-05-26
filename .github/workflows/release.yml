@@ -55,12 +55,7 @@ jobs:
           go build -o dist/mailrelay-${{ matrix.goos }}-${{ matrix.goarch }}
         fi
 
-    - name: Upload to release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ needs.release.outputs.upload_url }}
-        asset_path: dist/mailrelay-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
-        asset_name: mailrelay-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
-        asset_content_type: application/octet-stream
+        files: dist/*
