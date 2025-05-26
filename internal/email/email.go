@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"log"
 	"net/mail"
 	"net/smtp"
@@ -12,6 +13,28 @@ import (
 
 	"github.com/kiinoda/mailrelay/internal/config"
 )
+
+// SMTPClient interface for dependency injection in tests
+type SMTPClient interface {
+	StartTLS(config *tls.Config) error
+	Mail(from string) error
+	Rcpt(to string) error
+	Data() (io.WriteCloser, error)
+	Quit() error
+	Close() error
+}
+
+// RealSMTPClient wraps net/smtp.Client to implement SMTPClient interface
+type RealSMTPClient struct {
+	*smtp.Client
+}
+
+func (r *RealSMTPClient) Close() error {
+	return r.Client.Close()
+}
+
+// SMTPDialer function type for creating SMTP connections
+type SMTPDialer func(addr string) (SMTPClient, error)
 
 // Email represents an email message and provides methods for reading, parsing and sending
 type Email struct {
@@ -77,10 +100,26 @@ func (e *Email) parseRecipients() error {
 
 // Send attempts to send the email through one of the configured SMTP servers
 func (e *Email) Send() error {
+	return e.sendWithDialer(DefaultSMTPDialer)
+}
+
+
+
+// DefaultSMTPDialer creates real SMTP connections
+func DefaultSMTPDialer(addr string) (SMTPClient, error) {
+	client, err := smtp.Dial(addr)
+	if err != nil {
+		return nil, err
+	}
+	return &RealSMTPClient{Client: client}, nil
+}
+
+// sendWithDialer allows injection of custom dialer for testing
+func (e *Email) sendWithDialer(dialer SMTPDialer) error {
 	var err error
 	// Try each SMTP server until one succeeds
 	for _, server := range e.Config.SmtpAddrs {
-		if err = e.attemptRelay(server); err == nil {
+		if err = e.attemptRelayWithDialer(server, dialer); err == nil {
 			// Email sent successfully
 			if e.Config.BeVerbose {
 				fmt.Println("successfully sent mail from", e.Config.FromAddr, "to", e.Config.Recipients, "via", server)
@@ -92,15 +131,15 @@ func (e *Email) Send() error {
 	return fmt.Errorf("failed to send email to any SMTP server: %w", err)
 }
 
-// attemptRelay attempts to send the email through a specific SMTP server
-func (e *Email) attemptRelay(server string) error {
+// attemptRelayWithDialer attempts to send email using provided dialer
+func (e *Email) attemptRelayWithDialer(server string, dialer SMTPDialer) error {
 	// Create a custom TLS config that skips certificate verification
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 	}
 
-	// Connect to the SMTP server
-	c, err := smtp.Dial(server)
+	// Connect to the SMTP server using dialer
+	c, err := dialer(server)
 	if err != nil {
 		log.Println("error connecting to", server)
 		return err
