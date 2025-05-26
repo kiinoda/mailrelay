@@ -52,8 +52,15 @@ func (e *Email) parseRecipients() error {
 	// []string{"foo@domain.tld", "bar@domain.tld", "baz@domain.tld", "waldo@domain.tld", "xyzzy@domain.tld"}
 
 	for _, h := range []string{"to", "cc", "bcc"} {
-		for _, part := range strings.Split(msg.Header.Get(h), ",") {
+		headerValue := msg.Header.Get(h)
+		if headerValue == "" {
+			continue
+		}
+		for _, part := range strings.Split(headerValue, ",") {
 			trimmed := strings.Trim(part, " ")
+			if trimmed == "" {
+				continue
+			}
 			regex := regexp.MustCompile(`.*<(.*)>`)
 			matches := regex.FindStringSubmatch(trimmed)
 			recipient := ""
